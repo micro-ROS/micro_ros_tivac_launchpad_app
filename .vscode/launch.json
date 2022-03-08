@@ -1,0 +1,34 @@
+{
+    "version":"0.2.0",
+    "configurations":[
+       {
+          "name":"(gdb) Launch",
+          "type":"cppdbg",
+          "request":"launch",
+          "miDebuggerPath":"gdb-multiarch",
+          "targetArchitecture":"arm",
+          "debugServerPath":"openocd",
+          "debugServerArgs":"-f /usr/share/openocd/scripts/board/ek-tm4c123gxl.cfg",
+          "filterStderr":true,
+          "serverStarted":"Info\\ :\\ [\\w\\d\\.]*:\\ hardware",
+          "program":"${workspaceRoot}/gcc/microros_tivac.elf",
+          "args":[],
+          "stopAtEntry":false,
+          "cwd":"${workspaceRoot}",
+          "environment":[],
+          "externalConsole":true,
+          "MIMode":"gdb",
+          "setupCommands":[
+             {
+                "text":"target extended-remote :3333"
+             },
+             {
+                "text":"monitor halt"
+             },
+             {
+                "text":"load ${workspaceRoot}/gcc/microros_tivac.elf"
+             }
+          ]
+       }
+    ]
+ }

@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "microros_allocators.h": "c",
+        "stdlib.h": "c",
+        "typeinfo": "c",
+        "random": "c"
+    }
+}
