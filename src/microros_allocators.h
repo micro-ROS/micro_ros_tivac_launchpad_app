@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 uint32_t max_used_heap();
+void free_all_heap();
 
 void * custom_allocate(size_t size, void * state);
 void custom_deallocate(void * pointer, void * state);

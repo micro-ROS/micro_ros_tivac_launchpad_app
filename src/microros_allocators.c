@@ -12,6 +12,11 @@ uint32_t max_used_heap()
   return current_pointer;
 }
 
+void free_all_heap()
+{
+  current_pointer = 0;
+}
+
 void assert_position()
 {
   if (current_pointer >= sizeof(heap)) {
@@ -49,6 +54,9 @@ void * custom_reallocate(void * pointer, size_t size, void * state)
 
   current_pointer += size;
 
+  // Careful! pointer have less than size memory, gargabe is gonna be copied!
+  memcpy(&heap[p], pointer, size);
+
   assert_position();
   return (void *) &heap[p];
 }
@@ -64,6 +72,8 @@ void * custom_zero_allocate(size_t number_of_elements, size_t size_of_element, v
   size_t p = current_pointer;
 
   current_pointer += size;
+
+  memset(&heap[p], 0, size);
 
   assert_position();
   return (void *) &heap[p];
