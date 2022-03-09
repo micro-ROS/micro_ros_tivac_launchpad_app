@@ -1,6 +1,7 @@
 #include "./config.h"
 #include "./microros_usbcdc_transport.h"
 #include "./microros_allocators.h"
+#include "./microros_parameters.h"
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -9,6 +10,7 @@
 #include <rmw_microros/rmw_microros.h>
 
 #include <std_msgs/msg/int32.h>
+#include <std_msgs/msg/string.h>
 
 #define CHECK_AND_CONTINUE(X) if (!ret || !X){ret = false;}
 #define EXECUTE_EVERY_N_MS(MS, X)  do { \
@@ -24,15 +26,75 @@ rcl_init_options_t init_options;
 rcl_node_t node;
 rclc_executor_t executor;
 
-rcl_timer_t pub_timer;
-rcl_publisher_t pub;
-std_msgs__msg__Int32 msg = {};
+const rclc_parameter_options_t parameter_options = {.notify_changed_over_dds = true, .max_params = PARAMETERS_SIZE};
+rclc_parameter_server_t param_server;
 
-void pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+rcl_timer_t state_pub_timer;
+
+rcl_publisher_t left_state_pub;
+rcl_publisher_t right_state_pub;
+rcl_publisher_t left_position_pub;
+rcl_publisher_t right_position_pub;
+
+std_msgs__msg__Int32 recv_msgs[2];
+rcl_subscription_t left_control_sub;
+rcl_subscription_t right_control_sub;
+
+#ifdef DIAGNOSTIC_PUB
+rcl_timer_t diagnostic_pub_timer;
+rcl_publisher_t diagnostic_pub;
+
+uint32_t max_used_stack();
+void diagnostic_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-	rcl_publish(&pub, &msg, NULL);
-	msg.data++;
+	static char buf[300];
+
+	snprintf(buf, sizeof(buf), "max_stack: %u / %u B\n max_heap: %u / %u B\n current %d\n voltage %d\n",
+		max_used_stack(),
+		STACK_SIZE * sizeof(uint32_t),
+		max_used_heap(),
+		HEAP_SIZE,
+		0,
+		0);
+
+	std_msgs__msg__String msg;
+	msg.data.data = buf;
+	msg.data.size = strlen(buf);
+	msg.data.capacity = sizeof(buf);
+
+	rcl_publish(&diagnostic_pub, &msg, NULL);
 }
+#endif
+
+void state_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+{
+	std_msgs__msg__Int32 msg;
+
+	msg.data = 0xAA; // TODO: Get left_state
+	rcl_publish(&left_state_pub, &msg, NULL);
+
+	msg.data = 0xBB; // TODO: Get right_state
+	rcl_publish(&right_state_pub, &msg, NULL);
+
+	msg.data = 0xCC; // TODO: Get left_position
+	rcl_publish(&left_position_pub, &msg, NULL);
+
+	msg.data = 0xDD; // TODO: Get right_position
+	rcl_publish(&right_position_pub, &msg, NULL);
+}
+
+void left_control_sub_callback(const void * msg_in)
+{
+	const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *) msg_in;
+	// TODO: Set left motor to msg->data
+}
+
+void right_control_sub_callback(const void * msg_in)
+{
+	const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *) msg_in;
+	// TODO: Set right motor to msg->data
+}
+
 
 bool init_microros_entites() {
 	bool ret = true;
@@ -44,23 +106,44 @@ bool init_microros_entites() {
 
 	// create init_options
 	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator));
-  	(void)! rcl_init_options_fini(&init_options);
+	(void)! rcl_init_options_fini(&init_options);
 
 	// sync time
 	CHECK_AND_CONTINUE(RCL_RET_OK == rmw_uros_sync_session(1000.0));
 
 	// create node
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_node_init_default(&node, "tivac_node", "", &support));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_node_init_default(&node, "rosrider", "", &support));
 
 	// create publishers
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_default(&pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "tivac_pub"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&left_state_pub, 	 &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/left_wheel/state"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&right_state_pub, 	 &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/right_wheel/state"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&left_position_pub,  &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/left_wheel/position"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&right_position_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/right_wheel/position"));
 
 	// create timer,
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&pub_timer, &support, RCL_MS_TO_NS(1000), pub_timer_callback));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&state_pub_timer, &support, RCL_MS_TO_NS(20), state_pub_timer_callback));
+
+	// create subscribers
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_subscription_init_default(&left_control_sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/left_wheel/control_effort"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_subscription_init_default(&right_control_sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "/right_wheel/control_effort"));
+
+	// create parameter server
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_parameter_server_init_with_option(&param_server, &node, &parameter_options));
 
 	// create executor
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_init(&executor, &support.context, 1, &allocator));
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_timer(&executor, &pub_timer));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_init(&executor, &support.context, 1 /* timer */ + 2 /* subs */ + RCLC_PARAMETER_EXECUTOR_HANDLES_NUMBER + DIAGNOSTIC_PUB_HANDLE, &allocator));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_timer(&executor, &state_pub_timer));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_subscription(&executor, &left_control_sub, &recv_msgs[0], &left_control_sub_callback, ON_NEW_DATA));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_subscription(&executor, &left_control_sub, &recv_msgs[1], &right_control_sub_callback, ON_NEW_DATA));
+ 	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_parameter_server(&executor, &param_server, on_parameter_changed));
+
+	initialize_parameters(&param_server);
+
+#ifdef DIAGNOSTIC_PUB
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&diagnostic_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "/diagnostic"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&diagnostic_pub_timer, &support, RCL_MS_TO_NS(1000), diagnostic_pub_timer_callback));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_add_timer(&executor, &diagnostic_pub_timer));
+#endif
 
 	return ret;
 }
@@ -71,8 +154,23 @@ bool fini_microros_entities() {
  	rmw_context_t * rmw_context = rcl_context_get_rmw_context(&support.context);
 	(void) rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
-	(void)! rcl_publisher_fini(&pub, &node);
-	(void)! rcl_timer_fini(&pub_timer);
+	(void)! rcl_publisher_fini(&left_state_pub, &node);
+	(void)! rcl_publisher_fini(&right_state_pub, &node);
+	(void)! rcl_publisher_fini(&left_position_pub, &node);
+	(void)! rcl_publisher_fini(&right_position_pub, &node);
+
+	(void)! rcl_timer_fini(&state_pub_timer);
+
+	(void)! rcl_subscription_fini(&left_control_sub, &node);
+	(void)! rcl_subscription_fini(&right_control_sub, &node);
+
+	(void)! rclc_parameter_server_fini(&param_server, &node);
+
+#ifdef DIAGNOSTIC_PUB
+	(void)! rcl_publisher_fini(&diagnostic_pub, &node);
+	(void)! rcl_timer_fini(&diagnostic_pub_timer);
+#endif
+
 	(void)! rclc_executor_fini(&executor);
 	(void)! rcl_node_fini(&node);
 	(void)! rclc_support_fini(&support);
@@ -111,7 +209,7 @@ void microros_app(void * arg)
 	while(1) {
 		switch (state) {
 		case WAITING_AGENT:
-			EXECUTE_EVERY_N_MS(500, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_AVAILABLE : WAITING_AGENT;);
+			EXECUTE_EVERY_N_MS(100, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_AVAILABLE : WAITING_AGENT;);
 			break;
 		case AGENT_AVAILABLE:
 			state = (true == init_microros_entites()) ? AGENT_CONNECTED : WAITING_AGENT;

@@ -32,6 +32,7 @@ ${COMPILER}/syscalls.o \
 ${COMPILER}/microros_usbcdc_transport.o \
 ${COMPILER}/microros_time.o \
 ${COMPILER}/microros_allocators.o \
+${COMPILER}/microros_parameters.o \
 ${COMPILER}/startup_gcc.o \
 ${COMPILER}/uartstdio.o \
 ${COMPILER}/main.o \
