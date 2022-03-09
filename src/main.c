@@ -31,10 +31,6 @@
 
 #include "./config.h"
 
-#include "./rosrider/rosrider.h"
-#include "./rosrider/motor/motor.h"
-#include "./rosrider/encoders/encoders.h"
-
 // ##########################
 // ## System tick  handler ##
 // ##########################
@@ -171,11 +167,6 @@ int main(void)
   ROM_FPUEnable();
   ROM_FPULazyStackingEnable();
   ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
-
-  // Rosrider init
-  init_rosrider_system();
-  init_motors(false, false);
-  init_encoders(MAP_SysCtlClockGet() / 10, false, false, true, true);
 
   // Init USB-CDC Stack
   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_USB0);

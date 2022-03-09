@@ -8,14 +8,25 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <rmw_microros/rmw_microros.h>
+#include <rmw_microros/timing.h>
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
 
-#include "./rosrider/motor/motor.h"
-#include "./rosrider/encoders/encoders.h"
+#include <rosrider_firmware/include/rosrider.h>
+#include <rosrider_firmware/ros_motors/ros_motors.h>
 
-#define CHECK_AND_CONTINUE(X) if (!ret || !X){ret = false;}
+// #include "rosrider.h"
+// #include "ros_encoders.h"
+// #include "ros_motors.h"
+// #include "ros_leds.h"
+// #include "ros_monitor.h"
+// #include "parameters.h"
+// #include "rosrider/SysCtrlService.h"
+// #include "ros_simple.h"
+
+
+#define CHECK_AND_CONTINUE(X) if (!ret || !(X)){ret = false;}
 #define EXECUTE_EVERY_N_MS(MS, X)  do { \
 	static volatile int64_t init = -1; \
 	if (init == -1) { init = uxr_millis();} \
@@ -52,7 +63,7 @@ void diagnostic_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
 	static char buf[300];
 
-	snprintf(buf, sizeof(buf), "max_stack: %u / %u B\n max_heap: %u / %u B\n current %d\n voltage %d\n",
+	snprintf(buf, sizeof(buf), "max_stack: %lu / %u B\n max_heap: %lu / %u B\n current %d\n voltage %d\n",
 		max_used_stack(),
 		STACK_SIZE * sizeof(uint32_t),
 		max_used_heap(),
@@ -65,7 +76,7 @@ void diagnostic_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 	msg.data.size = strlen(buf);
 	msg.data.capacity = sizeof(buf);
 
-	rcl_publish(&diagnostic_pub, &msg, NULL);
+	(void)! rcl_publish(&diagnostic_pub, &msg, NULL);
 }
 #endif
 
@@ -74,16 +85,16 @@ void state_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 	std_msgs__msg__Int32 msg;
 
 	msg.data = get_velocity(&encoder_left);
-	rcl_publish(&left_state_pub, &msg, NULL);
+	(void)! rcl_publish(&left_state_pub, &msg, NULL);
 
 	msg.data = get_velocity(&encoder_right);
-	rcl_publish(&right_state_pub, &msg, NULL);
+	(void)! rcl_publish(&right_state_pub, &msg, NULL);
 
 	msg.data = get_position(&encoder_left);
-	rcl_publish(&left_position_pub, &msg, NULL);
+	(void)! rcl_publish(&left_position_pub, &msg, NULL);
 
 	msg.data = get_position(&encoder_right);
-	rcl_publish(&right_position_pub, &msg, NULL);
+	(void)! rcl_publish(&right_position_pub, &msg, NULL);
 }
 
 void left_control_sub_callback(const void * msg_in)
@@ -191,6 +202,11 @@ bool fini_microros_entities() {
 
 void microros_app(void * arg)
 {
+	// Rosrider init
+	init_rosrider_system();
+	init_motors(false, false);
+	init_encoders(MAP_SysCtlClockGet() / 10, false, false, true, true);
+
 	allocator = rcutils_get_zero_initialized_allocator();
 	allocator.allocate = custom_allocate;
 	allocator.deallocate = custom_deallocate;

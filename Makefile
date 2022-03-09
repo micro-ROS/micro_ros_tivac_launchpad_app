@@ -8,6 +8,9 @@ PART=TM4C123GH6PM
 
 include ${ROOT}/makedefs
 
+${COMPILER}${SUFFIX}/%.o: %.cpp
+	@${CC} ${CFLAGS} -D${COMPILER} -o ${@} ${<}
+
 VPATH=${ROOT}/examples/boards/ek-tm4c123gxl/drivers
 VPATH+=${ROOT}/utils
 VPATH+=src
@@ -18,6 +21,7 @@ IPATH=${ROOT}/examples/boards/ek-tm4c123gxl/
 IPATH+=${ROOT}
 IPATH+=microros/install/include
 IPATH+=src
+IPATH+=./
 
 all: ${COMPILER}
 all: ${COMPILER}/microros_tivac.bin
@@ -29,9 +33,6 @@ ${COMPILER}:
 	@mkdir -p ${COMPILER}
 
 OBJS=\
-${COMPILER}/motor.o \
-${COMPILER}/TivaQEI.o \
-${COMPILER}/encoders.o \
 ${COMPILER}/microros.o \
 ${COMPILER}/syscalls.o \
 ${COMPILER}/microros_usbcdc_transport.o \

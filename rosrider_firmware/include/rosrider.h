@@ -5,6 +5,20 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <ros.h>
+#include <ros/time.h>
+
+#include <tf/tf.h>
+#include <tf/transform_broadcaster.h>
+
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "inc/hw_i2c.h"
 #include "inc/hw_gpio.h"
 #include "inc/hw_types.h"
@@ -25,8 +39,73 @@
 #include "driverlib/hibernate.h"
 #include "driverlib/eeprom.h"
 
+#define PI 3.14159265
+
+int DEFAULT_STATUS = 0;
+
+/* parameters */
+
+// main parameters
+uint8_t UPDATE_RATE;
+uint8_t ENCODER_PPR;
+uint16_t GEAR_RATIO;
+float WHEEL_DIA;
+float BASE_WIDTH;
+float MAIN_AMP_LIMIT;
+float MT_AMP_LIMIT;
+float BAT_VOLTS_HIGH;
+float BAT_VOLTS_LOW;
+float MAX_RPM;
+
+// these are imagninary derived from config status
+bool LEFT_REVERSE;
+bool RIGHT_REVERSE;
+bool LEFT_SWAP;
+bool RIGHT_SWAP;
+bool LEFT_ENC_AB;
+bool RIGHT_ENC_AB;
+// until here
+
+float LEFT_DEADZONE;
+float RIGHT_DEADZONE;
+uint16_t MAX_IDLE_SECONDS;
+
+// calculated parameters
+uint16_t PULSE_PER_REV;
+float WHEEL_CIRCUMFERENCE;
+float LINEAR_RPM;
+float ANGULAR_RPM;
+float TICKS_PER_METER;
+float ROUNDS_PER_MINUTE;
+float COMMAND_TIMEOUT;
+
+// pid parameters
+float left_Kp = 4.8f;
+float left_Ki = 3.2f;
+float left_Kd = 0.02f;
+float right_Kp = 4.8f;
+float right_Ki = 3.2f;
+float right_Kd = 0.02f;
+
+/* parameters end */
+
+// rtc related
 #define SEC_MINUTE 60
 #define SEC_HOUR 3600
+
+uint32_t ui32SysClkFreq;
+bool eeprom_init = false;
+double idle_seconds = 0.0;
+
+// configuration flags
+uint8_t config_flags = 48;
+
+// power, motor, system status registers
+uint8_t power_status = 0x00;
+uint8_t motor_status = 0x00;
+uint8_t system_status = 0x00;
+
+char loginfo_buffer[100];
 
 void blink(bool on) {
     if(on) {
@@ -36,16 +115,52 @@ void blink(bool on) {
     }
 }
 
-// TODO(can): This is not compiling
-// void aux_ctrl(bool on) {
-//     if(on) {
-//         MAP_GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_PIN_4);
-//         power_status |= 0b00000001; // power:bit0 set
-//     } else {
-//         MAP_GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_4, 0x0);
-//         power_status &= 0b11111110; // power:bit0 unset
-//     }
-// }
+void aux_ctrl(bool on) {
+    if(on) {
+        MAP_GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_PIN_4);
+        power_status |= 0b00000001; // power:bit0 set
+    } else {
+        MAP_GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_4, 0x0);
+        power_status &= 0b11111110; // power:bit0 unset
+    }
+}
+
+void factory_defaults() {
+    // main parameters
+    UPDATE_RATE = 10;             // 10,20, or 50hz
+    ENCODER_PPR = 12;             // 12 pulses per rev
+    GEAR_RATIO = 380;             // 380:1
+    WHEEL_DIA = 0.06;             // 6cm
+    BASE_WIDTH = 0.1f;            // 10cm
+    MAIN_AMP_LIMIT = 3.6f;        // 3.6 amps
+    MT_AMP_LIMIT = 1.2f;          // 1.2 amps
+    BAT_VOLTS_HIGH = 14.4f;       // 14.4 volts
+    BAT_VOLTS_LOW = 6.0f;         // 6.0 volts
+    MAX_RPM = 90.0f;              // 90 rpm
+    LEFT_DEADZONE = 0.0f;         // 0
+    RIGHT_DEADZONE = 0.0f;        // 0
+    MAX_IDLE_SECONDS = 1800;      // 1800
+}
+
+void init_boolean_parameters() {
+    if(config_flags & 0b00000001) { LEFT_REVERSE = true; } else { LEFT_REVERSE = false; }
+    if(config_flags & 0b00000010) { RIGHT_REVERSE = true; } else { RIGHT_REVERSE = false; }
+    if(config_flags & 0b00000100) { LEFT_SWAP = true; } else { LEFT_SWAP = false; }
+    if(config_flags & 0b00001000) { RIGHT_SWAP = true; } else { RIGHT_SWAP = false; }
+    if(config_flags & 0b00010000) { LEFT_ENC_AB = true; } else { LEFT_ENC_AB = false; }
+    if(config_flags & 0b00100000) { RIGHT_ENC_AB = true; } else { RIGHT_ENC_AB = false; }
+}
+
+void recalculate_params() {
+    PULSE_PER_REV = GEAR_RATIO * ENCODER_PPR;
+    WHEEL_CIRCUMFERENCE = WHEEL_DIA * PI;
+    LINEAR_RPM = (1.0f / WHEEL_CIRCUMFERENCE) * 60.0f;
+    ANGULAR_RPM = (BASE_WIDTH / (WHEEL_CIRCUMFERENCE * 2.0f)) * 60.0f;
+    TICKS_PER_METER = PULSE_PER_REV * (1.0f / WHEEL_CIRCUMFERENCE);
+    ROUNDS_PER_MINUTE = (60.0f / (1.0f / UPDATE_RATE)) / PULSE_PER_REV;
+    COMMAND_TIMEOUT = (2.0f / UPDATE_RATE);     // notice: two updates, then time out, thus 2.0f
+    init_boolean_parameters();
+}
 
 // notice: must call init_leds after
 void reset_led_bus() {
@@ -58,10 +173,10 @@ void reset_led_bus() {
     }
 }
 
-void init_rosrider_system() {
+void init_system() {
 
     // record system clock value after clock initialization
-    uint32_t ui32SysClkFreq = MAP_SysCtlClockGet();
+    ui32SysClkFreq = MAP_SysCtlClockGet();
 
     // Peripheral A, B, C, D, E, F Enable
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -107,8 +222,8 @@ void init_rosrider_system() {
     }
 
     // hibernate setup
-    HibernateEnableExpClk(ui32SysClkFreq);
-    HibernateGPIORetentionDisable();
+	HibernateEnableExpClk(ui32SysClkFreq);
+	HibernateGPIORetentionDisable();
     HibernateWakeSet(HIBERNATE_WAKE_PIN);
 
     // rtc
@@ -122,14 +237,17 @@ void init_rosrider_system() {
     HibernateIntClear(ui32Status);
 
     // 50mS delay
-    MAP_SysCtlDelay(1333333UL); // 50ms
+	MAP_SysCtlDelay(1333333UL); // 50ms
 
-    // PD0 is USB_BTN
-    GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_0);
-    GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	// PD0 is USB_BTN
+	GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_0);
+	GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    // set defaults
+	// set defaults
+	factory_defaults();
+
     // recalculate parameters
+    recalculate_params();
 
 }
 
@@ -153,5 +271,9 @@ void setTime(uint32_t posixTime) {
 }
 
 /* rtc related end */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

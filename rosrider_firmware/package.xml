@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>rosrider_firmware</name>
+  <version>0.0.1</version>
+  <description>Firmware for ROSRider board</description>
+  
+  <author>Can Altineller</author>
+  <maintainer email="altineller@gmail.com">Can Altineller</maintainer>
+  <license>Copyright Can Altineller, 2019</license>
+  <author email="altineller@gmail.com">Can Altineller</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rosserial_client</build_depend>
+  <build_depend>rosserial_tivac</build_depend>  
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  
+  <run_depend>message_runtime</run_depend>
+  <run_depend>rosserial_client</run_depend>
+  <run_depend>rosserial_tivac</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+</package>

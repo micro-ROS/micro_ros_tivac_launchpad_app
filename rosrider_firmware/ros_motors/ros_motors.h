@@ -1,19 +1,14 @@
-#include "motor.h"
+#ifndef ros_motors_h
+#define ros_motors_h
 
-#include "inc/hw_memmap.h"
-#include "driverlib/rom_map.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/pwm.h"
-#include "driverlib/gpio.h"
-#include "driverlib/pin_map.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-// TODO(can): I have added this in order to build. What is motor_status along this code?
-// Should this be taken from configuration parameters?
-uint32_t motor_status;
-uint32_t power_status;
-uint32_t system_status;
-uint32_t LEFT_DEADZONE;
-uint32_t RIGHT_DEADZONE;
+#include "motor_enums.h"
+
+#define PWM_FREQUENCY 400
 
 volatile uint32_t ui32Load;
 volatile uint32_t ui32PWMClock;
@@ -119,10 +114,10 @@ void right_pwm(uint16_t pwm) {
   if(pwm > 1023) { pwm = 1023; }
 
   MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_1, pwm * ui32Load / 1024);
+
 }
 
 void init_motors(bool _left_rev, bool _right_rev) {
-  uint32_t ui32SysClkFreq = MAP_SysCtlClockGet();
 
   // REV1E, DRV1 is LEFT, DRV2 is RIGHT
 
@@ -183,4 +178,11 @@ void init_motors(bool _left_rev, bool _right_rev) {
   // set direction forward
   left_phase(FORWARD);
   right_phase(FORWARD);
+
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
