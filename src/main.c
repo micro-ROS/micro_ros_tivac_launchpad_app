@@ -159,7 +159,7 @@ int __io_putchar(int ch)
 // ## Entry point ##
 // #################
 
-void micro_ros_task(void);
+void microros_app(void);
 
 int main(void)
 {
@@ -187,7 +187,7 @@ int main(void)
 
   while (!g_bUSBConfigured) {}
 
-  micro_ros_task();
+  microros_app();
 
   while (1) {}
 }

@@ -30,11 +30,15 @@
 
 bool tivac_usbcdc_transport_open(struct uxrCustomTransport * transport)
 {
+  USBRingBufFlush(&g_sRxBuffer);
+  USBRingBufFlush(&g_sTxBuffer);
   return true;
 }
 
 bool tivac_usbcdc_transport_close(struct uxrCustomTransport * transport)
 {
+  USBRingBufFlush(&g_sRxBuffer);
+  USBRingBufFlush(&g_sTxBuffer);
   return true;
 }
 
