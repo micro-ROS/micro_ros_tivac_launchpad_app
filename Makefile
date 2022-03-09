@@ -11,6 +11,8 @@ include ${ROOT}/makedefs
 VPATH=${ROOT}/examples/boards/ek-tm4c123gxl/drivers
 VPATH+=${ROOT}/utils
 VPATH+=src
+VPATH+=src/rosrider/motor/
+VPATH+=src/rosrider/encoders/
 
 IPATH=${ROOT}/examples/boards/ek-tm4c123gxl/
 IPATH+=${ROOT}
@@ -27,6 +29,9 @@ ${COMPILER}:
 	@mkdir -p ${COMPILER}
 
 OBJS=\
+${COMPILER}/motor.o \
+${COMPILER}/TivaQEI.o \
+${COMPILER}/encoders.o \
 ${COMPILER}/microros.o \
 ${COMPILER}/syscalls.o \
 ${COMPILER}/microros_usbcdc_transport.o \

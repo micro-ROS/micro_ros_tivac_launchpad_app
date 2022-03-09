@@ -19,6 +19,7 @@
 #include "driverlib/uart.h"
 #include "driverlib/usb.h"
 #include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
 #include "usblib/usblib.h"
 #include "usblib/usbcdc.h"
 #include "usblib/usb-ids.h"
@@ -29,6 +30,10 @@
 #include "utils/uartstdio.h"
 
 #include "./config.h"
+
+#include "./rosrider/rosrider.h"
+#include "./rosrider/motor/motor.h"
+#include "./rosrider/encoders/encoders.h"
 
 // ##########################
 // ## System tick  handler ##
@@ -165,8 +170,14 @@ int main(void)
 {
   ROM_FPUEnable();
   ROM_FPULazyStackingEnable();
-  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
+  ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
 
+  // Rosrider init
+  init_rosrider_system();
+  init_motors(false, false);
+  init_encoders(MAP_SysCtlClockGet() / 10, false, false, true, true);
+
+  // Init USB-CDC Stack
   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_USB0);
   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
   ROM_GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5 | GPIO_PIN_4);

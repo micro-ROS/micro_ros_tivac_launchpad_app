@@ -12,6 +12,9 @@
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
 
+#include "./rosrider/motor/motor.h"
+#include "./rosrider/encoders/encoders.h"
+
 #define CHECK_AND_CONTINUE(X) if (!ret || !X){ret = false;}
 #define EXECUTE_EVERY_N_MS(MS, X)  do { \
 	static volatile int64_t init = -1; \
@@ -70,29 +73,35 @@ void state_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
 	std_msgs__msg__Int32 msg;
 
-	msg.data = 0xAA; // TODO: Get left_state
+	msg.data = get_velocity(&encoder_left);
 	rcl_publish(&left_state_pub, &msg, NULL);
 
-	msg.data = 0xBB; // TODO: Get right_state
+	msg.data = get_velocity(&encoder_right);
 	rcl_publish(&right_state_pub, &msg, NULL);
 
-	msg.data = 0xCC; // TODO: Get left_position
+	msg.data = get_position(&encoder_left);
 	rcl_publish(&left_position_pub, &msg, NULL);
 
-	msg.data = 0xDD; // TODO: Get right_position
+	msg.data = get_position(&encoder_right);
 	rcl_publish(&right_position_pub, &msg, NULL);
 }
 
 void left_control_sub_callback(const void * msg_in)
 {
 	const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *) msg_in;
-	// TODO: Set left motor to msg->data
+	int32_t pwm_left = msg->data;
+
+	if(pwm_left >= 0) { left_phase(FORWARD); } else if(pwm_left < 0) { left_phase(REVERSE); }
+	left_pwm(abs(pwm_left));
 }
 
 void right_control_sub_callback(const void * msg_in)
 {
 	const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *) msg_in;
-	// TODO: Set right motor to msg->data
+	int32_t pwm_right = msg->data;
+
+	if(pwm_right >= 0) { right_phase(FORWARD); } else if(pwm_right < 0) { right_phase(REVERSE); }
+    right_pwm(abs(pwm_right));
 }
 
 
