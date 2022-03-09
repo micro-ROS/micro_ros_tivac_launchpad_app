@@ -54,7 +54,7 @@ void * custom_reallocate(void * pointer, size_t size, void * state)
 
   current_pointer += size;
 
-  // Careful! pointer have less than size memory, gargabe is gonna be copied!
+  // Careful! pointer have less than size memory, garbage is gonna be copied!
   memcpy(&heap[p], pointer, size);
 
   assert_position();
