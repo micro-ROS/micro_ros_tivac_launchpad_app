@@ -8,6 +8,10 @@
         "ros_motors.h": "c",
         "timing.h": "c",
         "error_handling.h": "c",
-        "microros_usbcdc_transport.h": "c"
+        "microros_usbcdc_transport.h": "c",
+        "*.idl": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }

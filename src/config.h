@@ -4,10 +4,11 @@
 #define STACK_SIZE 1000
 #define HEAP_SIZE 14000
 
-#define DIAGNOSTIC_PUB
+// Utils
 
-#ifdef DIAGNOSTIC_PUB
-#define DIAGNOSTIC_PUB_HANDLE 1
-#else
-#define DIAGNOSTIC_PUB_HANDLE 0
-#endif
+#define CHECK_AND_CONTINUE(X) if (!ret || !(X)){ret = false;}
+#define EXECUTE_EVERY_N_MS(MS, X)  do { \
+	static volatile int64_t init = -1; \
+	if (init == -1) { init = uxr_millis();} \
+	if (uxr_millis() - init > MS) { X; init = uxr_millis();} \
+} while (0)

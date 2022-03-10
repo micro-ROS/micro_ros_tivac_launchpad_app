@@ -8,10 +8,6 @@ extern "C"
 
 #include "ina219.h"
 #include "average.h"
-#include "rosrider/Diagnostics.h"
-
-rosrider::Diagnostics diagnostics_msg;
-ros::Publisher diagnostics_pub("/rosrider/diagnostics", &diagnostics_msg);
 
 bool drv_flt_left = false;
 bool drv_flt_right = false;
@@ -145,29 +141,29 @@ void init_I2C2(void) {
     HWREG(I2C2_BASE + I2C_O_FIFOCTL) = 80008000;
 }
 
-void send_diagnostics_msg(float dt) {
+// void send_diagnostics_msg(float dt) {
 
-    diagnostics_msg.cs_left = current_left;
-    diagnostics_msg.cs_right = current_right;
+//     diagnostics_msg.cs_left = current_left;
+//     diagnostics_msg.cs_right = current_right;
 
-    diagnostics_msg.bus_voltage = bus_voltage;
-    diagnostics_msg.bus_current = bus_current;
+//     diagnostics_msg.bus_voltage = bus_voltage;
+//     diagnostics_msg.bus_current = bus_current;
 
-    diagnostics_msg.power_status = power_status;
-    diagnostics_msg.motor_status = motor_status;
-    diagnostics_msg.system_status = system_status;
+//     diagnostics_msg.power_status = power_status;
+//     diagnostics_msg.motor_status = motor_status;
+//     diagnostics_msg.system_status = system_status;
 
-    if((power_status>1) || (system_status >= 128)) {
-        diagnostics_msg.drivers_disabled = true;
-    } else {
-        diagnostics_msg.drivers_disabled = false;
-    }
+//     if((power_status>1) || (system_status >= 128)) {
+//         diagnostics_msg.drivers_disabled = true;
+//     } else {
+//         diagnostics_msg.drivers_disabled = false;
+//     }
 
-    diagnostics_msg.dt = dt;
+//     diagnostics_msg.dt = dt;
 
-    diagnostics_pub.publish(&diagnostics_msg);
+//     diagnostics_pub.publish(&diagnostics_msg);
 
-}
+// }
 
 #ifdef __cplusplus
 }

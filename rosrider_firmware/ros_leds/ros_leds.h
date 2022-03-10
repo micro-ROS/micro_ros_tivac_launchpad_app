@@ -1,12 +1,13 @@
 #ifndef ros_leds_h
 #define ros_leds_h
 
-#include "rosrider/LedService.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#include "driverlib/rom.h"
+#include "driverlib/rom_map.h"
 
 // TODO: reset code
 
@@ -169,11 +170,11 @@ void init_leds() {
 }
 
 // service callback
-void leds_cb(const rosrider::LedServiceRequest& req, rosrider::LedServiceResponse& resp) {
-    program_leds(req.fl, req.top, req.fr, req.br, req.bl, req.frequency);
-    resp.success =  true;
-}
-ros::ServiceServer<rosrider::LedServiceRequest, rosrider::LedServiceResponse> leds_service("rosrider/led_emitter", &leds_cb);
+// void leds_cb(const rosrider::LedServiceRequest& req, rosrider::LedServiceResponse& resp) {
+//     program_leds(req.fl, req.top, req.fr, req.br, req.bl, req.frequency);
+//     resp.success =  true;
+// }
+// ros::ServiceServer<rosrider::LedServiceRequest, rosrider::LedServiceResponse> leds_service("rosrider/led_emitter", &leds_cb);
 
 #ifdef __cplusplus
 }

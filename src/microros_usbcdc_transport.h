@@ -1,6 +1,11 @@
 #ifndef MICROROS_USBCDC_TRANSPORT_H_
 #define MICROROS_USBCDC_TRANSPORT_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -15,5 +20,9 @@ size_t tivac_usbcdc_transport_write(
 size_t tivac_usbcdc_transport_read(
   struct uxrCustomTransport * transport, uint8_t * buf, size_t len,
   int timeout, uint8_t * errcode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // MICROROS_USBCDC_TRANSPORT_H_
