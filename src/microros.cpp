@@ -12,6 +12,7 @@
 
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
+#include <sensor_msgs/msg/battery_state.h>
 
 #include <rosrider_firmware/include/rosrider.h>
 #include <rosrider_firmware/ros_encoders/ros_encoders.h>
@@ -20,16 +21,6 @@
 #include <rosrider_firmware/ros_monitor/ros_monitor.h>
 #include <rosrider_firmware/include/parameters.h>
 #include <rosrider_firmware/ros_simple/ros_simple.h>
-
-#define RED_GPIO_PERIPH         SYSCTL_PERIPH_GPIOF
-#define BLUE_GPIO_PERIPH        SYSCTL_PERIPH_GPIOF
-#define GREEN_GPIO_PERIPH       SYSCTL_PERIPH_GPIOF
-#define RED_GPIO_BASE           GPIO_PORTF_BASE
-#define BLUE_GPIO_BASE          GPIO_PORTF_BASE
-#define GREEN_GPIO_BASE         GPIO_PORTF_BASE
-#define RED_GPIO_PIN            GPIO_PIN_1
-#define BLUE_GPIO_PIN           GPIO_PIN_2
-#define GREEN_GPIO_PIN          GPIO_PIN_3
 
 typedef enum {
 	WAITING_AGENT,
@@ -53,20 +44,23 @@ extern rcl_timer_t dead_line_timer;
 extern "C" uint32_t max_used_stack();
 void diagnostic_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-	static char buf[300];
+	static sensor_msgs__msg__BatteryState msg = {};
 
-	snprintf(buf, sizeof(buf), "max_stack: %lu / %u B\n max_heap: %lu / %u B\n current %d\n voltage %d\n",
-		max_used_stack(),
-		STACK_SIZE * sizeof(uint32_t),
-		max_used_heap(),
-		HEAP_SIZE,
-		0,
-		0);
+	update_monitor();
+	update_ina219();
 
-	std_msgs__msg__String msg;
-	msg.data.data = buf;
-	msg.data.size = strlen(buf);
-	msg.data.capacity = sizeof(buf);
+	msg.voltage = bus_voltage;
+	msg.current = bus_current;
+
+	msg.power_supply_status = power_status;
+	msg.power_supply_health = motor_status;
+	msg.power_supply_technology = system_status;
+
+	msg.capacity = current_left;
+	msg.charge = current_right;
+
+	msg.header.stamp.sec = max_used_stack();
+	msg.header.stamp.nanosec = max_used_heap();
 
 	(void)! rcl_publish(&diagnostic_pub, &msg, NULL);
 }
@@ -107,9 +101,7 @@ void left_control_sub_callback(const void * msg_in)
 	left_pwm(abs(pwm_left));
 
 	rcl_timer_reset(&dead_line_timer);
-
-	GPIOPinWrite(GREEN_GPIO_BASE, GREEN_GPIO_PIN, GREEN_GPIO_PIN);
-	GPIOPinWrite(RED_GPIO_BASE, RED_GPIO_PIN, 0);
+	program_leds(0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF, 2.0);
 }
 
 void right_control_sub_callback(const void * msg_in)
@@ -125,28 +117,26 @@ void right_control_sub_callback(const void * msg_in)
 	right_pwm(abs(pwm_right));
 
 	rcl_timer_reset(&dead_line_timer);
+	program_leds(0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF, 2.0);
 
-	GPIOPinWrite(GREEN_GPIO_BASE, GREEN_GPIO_PIN, GREEN_GPIO_PIN);
-	GPIOPinWrite(RED_GPIO_BASE, RED_GPIO_PIN, 0);
 }
 
 void dead_line_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
 	left_pwm(0);
 	right_pwm(0);
+	program_leds(0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF, 2.0);
 
-	GPIOPinWrite(GREEN_GPIO_BASE, GREEN_GPIO_PIN, 0);
-	GPIOPinWrite(RED_GPIO_BASE, RED_GPIO_PIN, RED_GPIO_PIN);
 }
 
 extern "C" void microros_app(void * arg)
 {
 	// ---- RosRider init ----
 	init_system();
-	// init_I2C2();
-    // init_monitor();
+	init_I2C2();
+    init_monitor();
 
 	// self power diagnostics
-    // self_power_diagnostics();
+    self_power_diagnostics();
 
     // // do not start system, and go to hibernate after 100 seconds
     // if(power_status > 1) { self_power_fail(); }
@@ -173,13 +163,7 @@ extern "C" void microros_app(void * arg)
     // led timer init @ 1.0Hz
     Timer1Init(1.0f);
 
-    SysCtlPeripheralEnable(GREEN_GPIO_PERIPH);
-    GPIOPinTypeGPIOOutput(GREEN_GPIO_BASE, GREEN_GPIO_PIN);
-    GPIOPinWrite(GREEN_GPIO_BASE, GREEN_GPIO_PIN, 0);
-
-	SysCtlPeripheralEnable(RED_GPIO_PERIPH);
-	GPIOPinTypeGPIOOutput(RED_GPIO_BASE, RED_GPIO_PIN);
-	GPIOPinWrite(RED_GPIO_BASE, RED_GPIO_PIN, RED_GPIO_PIN);
+	program_leds(0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF, 2.0);
 
 	// ---- micro-ROS init ----
 	rcl_allocator_t allocator = rcutils_get_zero_initialized_allocator();
@@ -203,6 +187,7 @@ extern "C" void microros_app(void * arg)
 	microros_state_t state = WAITING_AGENT;
 
 	while(1) {
+		handle_leds();
 		switch (state) {
 		case WAITING_AGENT:
 			EXECUTE_EVERY_N_MS(100, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_AVAILABLE : WAITING_AGENT;);
@@ -214,7 +199,7 @@ extern "C" void microros_app(void * arg)
 			};
 			break;
 		case AGENT_CONNECTED:
-			EXECUTE_EVERY_N_MS(200, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_CONNECTED : AGENT_DISCONNECTED;);
+			EXECUTE_EVERY_N_MS(500, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_CONNECTED : AGENT_DISCONNECTED;);
 			if (state == AGENT_CONNECTED) {
 				rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
 			}

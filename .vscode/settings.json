@@ -12,6 +12,7 @@
         "*.idl": "cpp",
         "array": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "rom.h": "c"
     }
 }

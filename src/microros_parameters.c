@@ -3,6 +3,8 @@
 #include "driverlib/rom_map.h"
 #include "driverlib/eeprom.h"
 
+static bool initializing_parameters = true;
+
 union conv32 {
     uint32_t u32;
     float f32;
@@ -14,10 +16,9 @@ extern bool eeprom_init;;
 void wheel_dia_callback(Parameter * param){
   WHEEL_DIA = (float) param->value.double_value;
 
-  if(eeprom_init) {
+  if(eeprom_init && !initializing_parameters) {
     uint32_t pui32Data = ((union conv32){.f32 = WHEEL_DIA}).u32;
-    // THIS HALTS THE SYSTEM. IS SAFE TO CALL EEPROMProgram DIRECTLY?
-    // EEPROMProgram(pui32Data, 0x14, sizeof(pui32Data));
+    EEPROMProgram(&pui32Data, 0x14, sizeof(pui32Data));
   }
 
   recalculate_params();
@@ -48,6 +49,7 @@ bool initialize_parameters(rclc_parameter_server_t * param_server)
   // Init defaults
   rclc_parameter_set_double(param_server, "wheel_dia", (double) WHEEL_DIA);
 
+  initializing_parameters = false;
   return ret;
 }
 
