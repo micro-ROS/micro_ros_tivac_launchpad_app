@@ -44,23 +44,13 @@ extern rcl_timer_t dead_line_timer;
 extern "C" uint32_t max_used_stack();
 void diagnostic_pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-	static sensor_msgs__msg__BatteryState msg = {};
+	static std_msgs__msg__String msg = {0};
 
-	update_monitor();
-	update_ina219();
-
-	msg.voltage = bus_voltage;
-	msg.current = bus_current;
-
-	msg.power_supply_status = power_status;
-	msg.power_supply_health = motor_status;
-	msg.power_supply_technology = system_status;
-
-	msg.capacity = current_left;
-	msg.charge = current_right;
-
-	msg.header.stamp.sec = max_used_stack();
-	msg.header.stamp.nanosec = max_used_heap();
+	static char buffer[1000] = {0};
+	snprintf(buffer, 1000, "Stack usage: %d/%d B   Heap usage: %d/%d B   Bus voltage: %d mV   Bus current %d mA", max_used_stack(), STACK_SIZE*4, max_used_heap(), HEAP_SIZE, (int) bus_voltage * 1000, (int) bus_current);
+	msg.data.data = buffer;
+	msg.data.size = strlen(buffer);
+	msg.data.capacity = 1000;
 
 	(void)! rcl_publish(&diagnostic_pub, &msg, NULL);
 }
@@ -100,7 +90,9 @@ void left_control_sub_callback(const void * msg_in)
 
 	left_pwm(abs(pwm_left));
 
-	rcl_timer_reset(&dead_line_timer);
+	(void)! rcl_timer_reset(&dead_line_timer);
+
+	// Set LEDs to green
 	program_leds(0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF, 2.0);
 }
 
@@ -116,7 +108,9 @@ void right_control_sub_callback(const void * msg_in)
 	}
 	right_pwm(abs(pwm_right));
 
-	rcl_timer_reset(&dead_line_timer);
+	(void)! rcl_timer_reset(&dead_line_timer);
+
+	// Set LEDs to green
 	program_leds(0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF,0x00FF00FF, 2.0);
 
 }
@@ -124,6 +118,8 @@ void right_control_sub_callback(const void * msg_in)
 void dead_line_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
 	left_pwm(0);
 	right_pwm(0);
+
+	// Set LEDs to red
 	program_leds(0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF,0xFF0000FF, 2.0);
 
 }

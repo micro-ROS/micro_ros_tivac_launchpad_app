@@ -82,7 +82,7 @@ bool init_microros_entites() {
 	executor_handles += 2;
 
 	// create diagnostic
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&diagnostic_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState), "/diagnostic"));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_best_effort(&diagnostic_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String), "/diagnostic"));
 	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&diagnostic_pub_timer, &support, RCL_MS_TO_NS(1000), diagnostic_pub_timer_callback));
 	executor_handles += 1;
 

@@ -3,6 +3,8 @@
 #include "driverlib/rom_map.h"
 #include "driverlib/eeprom.h"
 
+void recalculate_params();
+
 static bool initializing_parameters = true;
 
 union conv32 {
