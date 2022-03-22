@@ -10,7 +10,7 @@
 
 #include <std_msgs/msg/int32.h>
 
-#define CHECK_AND_CONTINUE(X) if (!ret || !X){ret = false;}
+#define CHECK_AND_CONTINUE(X) if (!ret || !(X)){ret = false;}
 #define EXECUTE_EVERY_N_MS(MS, X)  do { \
 	static volatile int64_t init = -1; \
 	if (init == -1) { init = uxr_millis();} \
@@ -26,11 +26,11 @@ rclc_executor_t executor;
 
 rcl_timer_t pub_timer;
 rcl_publisher_t pub;
-std_msgs__msg__Int32 msg = {};
+std_msgs__msg__Int32 msg = {0};
 
 void pub_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
-	rcl_publish(&pub, &msg, NULL);
+	(void)! rcl_publish(&pub, &msg, NULL);
 	msg.data++;
 }
 
@@ -56,7 +56,7 @@ bool init_microros_entites() {
 	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_publisher_init_default(&pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32), "tivac_pub"));
 
 	// create timer,
-	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&pub_timer, &support, RCL_MS_TO_NS(1000), pub_timer_callback));
+	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_timer_init_default(&pub_timer, &support, RCL_MS_TO_NS(20), pub_timer_callback));
 
 	// create executor
 	CHECK_AND_CONTINUE(RCL_RET_OK == rclc_executor_init(&executor, &support.context, 1, &allocator));

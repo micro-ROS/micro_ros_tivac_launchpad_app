@@ -30,15 +30,15 @@
 
 bool tivac_usbcdc_transport_open(struct uxrCustomTransport * transport)
 {
-  USBRingBufFlush(&g_sRxBuffer);
-  USBRingBufFlush(&g_sTxBuffer);
+  USBBufferFlush(&g_sRxBuffer);
+  USBBufferFlush(&g_sTxBuffer);
   return true;
 }
 
 bool tivac_usbcdc_transport_close(struct uxrCustomTransport * transport)
 {
-  USBRingBufFlush(&g_sRxBuffer);
-  USBRingBufFlush(&g_sTxBuffer);
+  USBBufferFlush(&g_sRxBuffer);
+  USBBufferFlush(&g_sTxBuffer);
   return true;
 }
 
@@ -47,7 +47,6 @@ size_t tivac_usbcdc_transport_write(
   size_t len, uint8_t * errcode)
 {
   uint32_t written = USBBufferWrite(&g_sTxBuffer, buf, len);
-  USBRingBufFlush(&g_sTxBuffer);
   return written;
 }
 

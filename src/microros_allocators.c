@@ -3,6 +3,7 @@
 #include "./config.h"
 
 #include <stdint.h>
+#include <string.h>
 
 static uint8_t heap[HEAP_SIZE];
 static size_t current_pointer = 0;
