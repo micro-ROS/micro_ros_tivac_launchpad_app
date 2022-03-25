@@ -38,10 +38,13 @@ SECTIONS
         KEEP(*(.isr_vector))
         *(.text*)
         *(.rodata*)
+        *(.ARM.extab* .gnu.linkonce.armextab.*)
         KEEP (*(.init))
         KEEP (*(.fini))
         _etext = .;
     } > FLASH
+
+
 
     .data : AT(ADDR(.text) + SIZEOF(.text))
     {
@@ -59,6 +62,13 @@ SECTIONS
         *(COMMON)
         _ebss = .;
     } > SRAM
+
+    PROVIDE_HIDDEN(__exidx_start = .);
+    .ARM.exidx :
+    {
+      *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    } > SRAM
+    PROVIDE_HIDDEN(__exidx_end = .);
 
     /DISCARD/ :
     {

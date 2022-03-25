@@ -8,14 +8,24 @@ PART=TM4C123GH6PM
 
 include ${ROOT}/makedefs
 
+${COMPILER}${SUFFIX}/%.o: %.cpp
+	echo ${CC} ${CFLAGS} -D${COMPILER} -o ${@} ${<}
+	@${CC} ${CFLAGS} -D${COMPILER} -o ${@} ${<}
+
 VPATH=${ROOT}/examples/boards/ek-tm4c123gxl/drivers
 VPATH+=${ROOT}/utils
 VPATH+=src
+VPATH+=rosrider_firmware/ros_encoders
+VPATH+=rosrider_firmware/include
 
 IPATH=${ROOT}/examples/boards/ek-tm4c123gxl/
 IPATH+=${ROOT}
 IPATH+=microros/install/include
 IPATH+=src
+IPATH+=./
+IPATH+=rosrider_firmware/include
+IPATH+=rosrider_firmware/include
+
 
 all: ${COMPILER}
 all: ${COMPILER}/microros_tivac.bin
@@ -28,6 +38,10 @@ ${COMPILER}:
 
 OBJS=\
 ${COMPILER}/microros.o \
+${COMPILER}/microros_init.o \
+${COMPILER}/TivaQEI.o \
+${COMPILER}/ina219.o \
+${COMPILER}/ina219_tiva.o \
 ${COMPILER}/syscalls.o \
 ${COMPILER}/microros_usbcdc_transport.o \
 ${COMPILER}/microros_time.o \

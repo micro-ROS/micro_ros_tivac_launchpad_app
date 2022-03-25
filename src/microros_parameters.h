@@ -2,6 +2,11 @@
 #ifndef MICROROS_PARAMETERS_H_
 #define MICROROS_PARAMETERS_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <rclc_parameter/rclc_parameter.h>
 
 #define PARAMETERS \
@@ -29,5 +34,9 @@ enum Parameters{
 
 bool initialize_parameters(rclc_parameter_server_t * param_server);
 void on_parameter_changed(Parameter * param);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // MICROROS_PARAMETERS_H_
