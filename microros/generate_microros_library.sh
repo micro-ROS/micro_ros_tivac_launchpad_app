@@ -32,12 +32,12 @@ rm -rf $INSTALL_DIR/micro_ros_src/log
 
 mkdir -p $INSTALL_DIR/micro_ros_dev;
 pushd $INSTALL_DIR/micro_ros_dev > /dev/null
-	git clone -b galactic https://github.com/ament/ament_cmake src/ament_cmake;
-	git clone -b galactic https://github.com/ament/ament_lint src/ament_lint;
-	git clone -b galactic https://github.com/ament/ament_package src/ament_package;
-	git clone -b galactic https://github.com/ament/googletest src/googletest;
-	git clone -b galactic https://github.com/ros2/ament_cmake_ros src/ament_cmake_ros;
-	git clone -b galactic https://github.com/ament/ament_index src/ament_index;
+	git clone -b master https://github.com/ament/ament_cmake src/ament_cmake;
+	git clone -b master https://github.com/ament/ament_lint src/ament_lint;
+	git clone -b master https://github.com/ament/ament_package src/ament_package;
+	git clone -b ros2 https://github.com/ament/googletest src/googletest;
+	git clone -b master https://github.com/ros2/ament_cmake_ros src/ament_cmake_ros;
+	git clone -b master https://github.com/ament/ament_index src/ament_index;
     colcon build --cmake-args -DBUILD_TESTING=OFF;
 popd > /dev/null
 
@@ -45,39 +45,37 @@ mkdir -p $INSTALL_DIR/micro_ros_src;
 pushd $INSTALL_DIR/micro_ros_src > /dev/null
 	git clone -b ros2 https://github.com/eProsima/micro-CDR src/micro-CDR;
 	git clone -b ros2 https://github.com/eProsima/Micro-XRCE-DDS-Client src/Micro-XRCE-DDS-Client;
-	git clone -b galactic https://github.com/micro-ROS/rcl src/rcl;
+	git clone -b master https://github.com/micro-ROS/rcl src/rcl;
 	git clone -b master https://github.com/ros2/rclc src/rclc;
-	git clone -b galactic https://github.com/micro-ROS/rcutils src/rcutils;
-	git clone -b galactic https://github.com/micro-ROS/micro_ros_msgs src/micro_ros_msgs;
-	git clone -b galactic https://github.com/micro-ROS/rmw-microxrcedds src/rmw-microxrcedds;
-	git clone -b galactic https://github.com/micro-ROS/rosidl_typesupport src/rosidl_typesupport;
-	git clone -b galactic https://github.com/micro-ROS/rosidl_typesupport_microxrcedds src/rosidl_typesupport_microxrcedds;
-	git clone -b mergify/bp/galactic/pr-584 https://github.com/ros2/rosidl src/rosidl;
-	git clone -b galactic https://github.com/ros2/rmw src/rmw;
-	git clone -b galactic https://github.com/ros2/rcl_interfaces src/rcl_interfaces;
-	git clone -b galactic https://github.com/ros2/rosidl_defaults src/rosidl_defaults;
-	git clone -b galactic https://github.com/ros2/unique_identifier_msgs src/unique_identifier_msgs;
-	git clone -b galactic https://github.com/ros2/common_interfaces src/common_interfaces;
-	git clone -b galactic https://github.com/ros2/test_interface_files src/test_interface_files;
-	git clone -b galactic https://github.com/ros2/rmw_implementation src/rmw_implementation;
-	git clone -b galactic https://github.com/ros2/rcl_logging src/rcl_logging;
-	git clone -b galactic https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing src/ros2_tracing;
-	# git clone -b galactic https://github.com/micro-ROS/micro_ros_utilities src/micro_ros_utilities;
-	git clone -b galactic https://github.com/ros2/example_interfaces src/example_interfaces;
-    git clone -b galactic-devel https://github.com/ros-controls/control_msgs src/control_msgs;
+	git clone -b master https://github.com/micro-ROS/rcutils src/rcutils;
+	git clone -b main https://github.com/micro-ROS/micro_ros_msgs src/micro_ros_msgs;
+	git clone -b main https://github.com/micro-ROS/rmw-microxrcedds src/rmw-microxrcedds;
+	git clone -b master https://github.com/micro-ROS/rosidl_typesupport src/rosidl_typesupport;
+	git clone -b main https://github.com/micro-ROS/rosidl_typesupport_microxrcedds src/rosidl_typesupport_microxrcedds;
+	git clone -b master https://github.com/ros2/rosidl src/rosidl;
+	git clone -b master https://github.com/ros2/rmw src/rmw;
+	git clone -b master https://github.com/ros2/rcl_interfaces src/rcl_interfaces;
+	git clone -b master https://github.com/ros2/rosidl_defaults src/rosidl_defaults;
+	git clone -b master https://github.com/ros2/unique_identifier_msgs src/unique_identifier_msgs;
+	git clone -b master https://github.com/ros2/common_interfaces src/common_interfaces;
+	git clone -b master https://github.com/ros2/test_interface_files src/test_interface_files;
+	git clone -b master https://github.com/ros2/rmw_implementation src/rmw_implementation;
+	git clone -b master https://github.com/ros2/rcl_logging src/rcl_logging;
+	git clone -b master https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing src/ros2_tracing;
+	# git clone -b main https://github.com/micro-ROS/micro_ros_utilities src/micro_ros_utilities;
 
-    git clone -b galactic https://github.com/ros2/geometry2
+    touch src/rosidl/rosidl_typesupport_introspection_cpp/COLCON_IGNORE;
+    touch src/rcl_logging/rcl_logging_log4cxx/COLCON_IGNORE;
+    touch src/rcl_logging/rcl_logging_spdlog/COLCON_IGNORE;
+    touch src/rclc/rclc_examples/COLCON_IGNORE;
+	touch src/rcl/rcl_yaml_param_parser/COLCON_IGNORE;
+
+
+    git clone -b ros2 https://github.com/ros2/geometry2
     cp -R geometry2/tf2_msgs src/tf2_msgs
     rm -rf geometry2
 
     # cp -R $COMPONENT_DIR/extra_packages/* src
-
-	touch src/rosidl/rosidl_typesupport_introspection_cpp/COLCON_IGNORE;
-	touch src/rosidl/rosidl_typesupport_introspection_c/COLCON_IGNORE;
-	touch src/rcl_logging/rcl_logging_log4cxx/COLCON_IGNORE;
-	touch src/rcl_logging/rcl_logging_spdlog/COLCON_IGNORE;
-	touch src/rclc/rclc_examples/COLCON_IGNORE;
-	touch src/rcl/rcl_yaml_param_parser/COLCON_IGNORE;
 
     unset AMENT_PREFIX_PATH;
     unset RMW_IMPLEMENTATION;
@@ -128,6 +126,17 @@ done ; \
 ${X_AR} rc libmicroros.a $(ls *.o *.obj 2> /dev/null); mkdir -p $INSTALL_DIR; cp libmicroros.a $INSTALL_DIR; ranlib $INSTALL_DIR/libmicroros.a; \
 cp -R $INSTALL_DIR/micro_ros_src/install/include $INSTALL_DIR/; \
 cd ..; rm -rf libmicroros;
+
+######## Fix include paths  ########
+pushd $INSTALL_DIR/micro_ros_src > /dev/null
+    INCLUDE_ROS2_PACKAGES=$(colcon list | awk '{print $1}' | awk -v d=" " '{s=(NR==1?s:s d)$0}END{print s}')
+popd > /dev/null
+
+apt -y install rsync
+for var in ${INCLUDE_ROS2_PACKAGES}; do
+    rsync -r $INSTALL_DIR/include/${var}/${var}/* $INSTALL_DIR/include/${var}/
+    rm -rf $INSTALL_DIR/include/${var}/${var}/
+done
 
 # Print compiler info
 echo "C Compiler" > $INSTALL_DIR/compiler_version.txt;
