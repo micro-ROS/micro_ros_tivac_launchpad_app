@@ -1,12 +1,5 @@
-<br/>
-
-<a>
-   <p align="center">
-      <img width="40%" src=".images/ti.png">
-      <img style="padding-left:10vw" width="40%" src=".images/microros_logo.png">
-   </p>
-</a>
-<br/>
+![banner](.images/banner-dark-theme.png#gh-dark-mode-only)
+![banner](.images/banner-light-theme.png#gh-light-mode-only)
 
 # micro-ROS app for TI Tiva™ C Series TM4C123G
 
