@@ -32,12 +32,12 @@ rm -rf $INSTALL_DIR/micro_ros_src/log
 
 mkdir -p $INSTALL_DIR/micro_ros_dev;
 pushd $INSTALL_DIR/micro_ros_dev > /dev/null
-	git clone -b master https://github.com/ament/ament_cmake src/ament_cmake;
-	git clone -b master https://github.com/ament/ament_lint src/ament_lint;
-	git clone -b master https://github.com/ament/ament_package src/ament_package;
-	git clone -b ros2 https://github.com/ament/googletest src/googletest;
-	git clone -b master https://github.com/ros2/ament_cmake_ros src/ament_cmake_ros;
-	git clone -b master https://github.com/ament/ament_index src/ament_index;
+	git clone -b rolling https://github.com/ament/ament_cmake src/ament_cmake;
+	git clone -b rolling https://github.com/ament/ament_lint src/ament_lint;
+	git clone -b rolling https://github.com/ament/ament_package src/ament_package;
+	git clone -b rolling https://github.com/ament/googletest src/googletest;
+	git clone -b rolling https://github.com/ros2/ament_cmake_ros src/ament_cmake_ros;
+	git clone -b rolling https://github.com/ament/ament_index src/ament_index;
     colcon build --cmake-args -DBUILD_TESTING=OFF;
 popd > /dev/null
 
@@ -52,16 +52,17 @@ pushd $INSTALL_DIR/micro_ros_src > /dev/null
 	git clone -b main https://github.com/micro-ROS/rmw-microxrcedds src/rmw-microxrcedds;
 	git clone -b master https://github.com/micro-ROS/rosidl_typesupport src/rosidl_typesupport;
 	git clone -b main https://github.com/micro-ROS/rosidl_typesupport_microxrcedds src/rosidl_typesupport_microxrcedds;
-	git clone -b master https://github.com/ros2/rosidl src/rosidl;
-	git clone -b master https://github.com/ros2/rmw src/rmw;
-	git clone -b master https://github.com/ros2/rcl_interfaces src/rcl_interfaces;
-	git clone -b master https://github.com/ros2/rosidl_defaults src/rosidl_defaults;
-	git clone -b master https://github.com/ros2/unique_identifier_msgs src/unique_identifier_msgs;
-	git clone -b master https://github.com/ros2/common_interfaces src/common_interfaces;
-	git clone -b master https://github.com/ros2/test_interface_files src/test_interface_files;
-	git clone -b master https://github.com/ros2/rmw_implementation src/rmw_implementation;
-	git clone -b master https://github.com/ros2/rcl_logging src/rcl_logging;
-	git clone -b master https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing src/ros2_tracing;
+	git clone -b rolling https://github.com/ros2/rosidl src/rosidl;
+    git clone -b rolling https://github.com/ros2/rosidl_core src/rosidl_core
+	git clone -b rolling https://github.com/ros2/rmw src/rmw;
+	git clone -b rolling https://github.com/ros2/rcl_interfaces src/rcl_interfaces;
+	git clone -b rolling https://github.com/ros2/rosidl_defaults src/rosidl_defaults;
+	git clone -b rolling https://github.com/ros2/unique_identifier_msgs src/unique_identifier_msgs;
+	git clone -b rolling https://github.com/ros2/common_interfaces src/common_interfaces;
+	git clone -b rolling https://github.com/ros2/test_interface_files src/test_interface_files;
+	git clone -b rolling https://github.com/ros2/rmw_implementation src/rmw_implementation;
+	git clone -b rolling https://github.com/ros2/rcl_logging src/rcl_logging;
+	git clone -b rolling https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing src/ros2_tracing;
 	# git clone -b main https://github.com/micro-ROS/micro_ros_utilities src/micro_ros_utilities;
 
     touch src/rosidl/rosidl_typesupport_introspection_cpp/COLCON_IGNORE;
@@ -71,7 +72,7 @@ pushd $INSTALL_DIR/micro_ros_src > /dev/null
 	touch src/rcl/rcl_yaml_param_parser/COLCON_IGNORE;
 
 
-    git clone -b ros2 https://github.com/ros2/geometry2
+    git clone -b rolling https://github.com/ros2/geometry2
     cp -R geometry2/tf2_msgs src/tf2_msgs
     rm -rf geometry2
 
