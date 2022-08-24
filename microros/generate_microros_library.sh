@@ -53,7 +53,7 @@ pushd $INSTALL_DIR/micro_ros_src > /dev/null
 	git clone -b master https://github.com/micro-ROS/rosidl_typesupport src/rosidl_typesupport;
 	git clone -b main https://github.com/micro-ROS/rosidl_typesupport_microxrcedds src/rosidl_typesupport_microxrcedds;
 	git clone -b rolling https://github.com/ros2/rosidl src/rosidl;
-    git clone -b rolling https://github.com/ros2/rosidl_core src/rosidl_core
+	git clone -b rolling https://github.com/ros2/rosidl_core src/rosidl_core;
 	git clone -b rolling https://github.com/ros2/rmw src/rmw;
 	git clone -b rolling https://github.com/ros2/rcl_interfaces src/rcl_interfaces;
 	git clone -b rolling https://github.com/ros2/rosidl_defaults src/rosidl_defaults;
