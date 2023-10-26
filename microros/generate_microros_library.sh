@@ -63,7 +63,7 @@ pushd $INSTALL_DIR/micro_ros_src > /dev/null
 	git clone -b rolling https://github.com/ros2/test_interface_files src/test_interface_files;
 	git clone -b rolling https://github.com/ros2/rmw_implementation src/rmw_implementation;
 	git clone -b rolling https://github.com/ros2/rcl_logging src/rcl_logging;
-	git clone -b rolling https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing src/ros2_tracing;
+	git clone -b rolling https://github.com/ros2/ros2_tracing src/ros2_tracing;
 	# git clone -b main https://github.com/micro-ROS/micro_ros_utilities src/micro_ros_utilities;
 
     touch src/rosidl/rosidl_typesupport_introspection_cpp/COLCON_IGNORE;
