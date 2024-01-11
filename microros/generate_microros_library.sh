@@ -68,6 +68,7 @@ pushd $INSTALL_DIR/micro_ros_src > /dev/null
 
     touch src/rosidl/rosidl_typesupport_introspection_cpp/COLCON_IGNORE;
     touch src/ros2_tracing/test_tracetools/COLCON_IGNORE;
+    touch src/ros2_tracing/lttngpy/COLCON_IGNORE;
     touch src/rcl_logging/rcl_logging_log4cxx/COLCON_IGNORE;
     touch src/rcl_logging/rcl_logging_spdlog/COLCON_IGNORE;
     touch src/rclc/rclc_examples/COLCON_IGNORE;
