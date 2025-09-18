@@ -1,0 +1,57 @@
+name: install_sdk
+description: Generate the TivaWare for C Series SDK files
+
+inputs:
+  sdk_version:
+    description: 'The SW-TM4C SDK version to install (See https://www.ti.com/tool/SW-TM4C#downloads).'
+    required: true
+  install_path:
+    description: 'The path where the SDK should be installed.'
+    required: true
+  force_reinstall:
+    description: 'Force reinstallation even if the SDK is already installed.'
+    required: false
+    default: 'false'
+  use-sudo:
+    description: 'Whether to use sudo for installation commands.'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Install APT packages
+      uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
+      with:
+        packages: "curl p7zip"
+        use-sudo: ${{ inputs.use-sudo }}
+        use-update: "false"
+
+    - name: Install TivaWare SDK files
+      run: |
+        SDK_VERSION="${{ inputs.sdk_version }}"
+        INSTALL_PATH="${{ inputs.install_path }}"
+        FORCE_REINSTALL="${{ inputs.force_reinstall }}"
+        SDK_EXE="SDK-${SDK_VERSION}.exe"
+        SDK_URL="https://dr-download.ti.com/software-development/software-development-kit-sdk/MD-oCcDwnGrsI/${SDK_VERSION}/SW-TM4C-${SDK_VERSION}.exe"
+
+        if [ -d "$INSTALL_PATH" ] && [ "$FORCE_REINSTALL" != "true" ]; then
+          echo "SDK already installed at $INSTALL_PATH. Skipping download and installation."
+          exit 0
+        fi
+
+        mkdir -p "$INSTALL_PATH"
+        cd "$INSTALL_PATH"
+
+        echo "Downloading TivaWare SDK version $SDK_VERSION..."
+        curl -L -o "$SDK_EXE" "$SDK_URL"
+
+        echo "Extracting SDK..."
+        7z x "$SDK_EXE" -o"$INSTALL_PATH"
+
+        echo "Cleaning up..."
+        rm "$SDK_EXE"
+
+        echo "TivaWare SDK version $SDK_VERSION installed at $INSTALL_PATH."
+      shell: bash
