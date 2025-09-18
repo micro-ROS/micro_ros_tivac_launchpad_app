@@ -19,8 +19,14 @@ jobs:
       fail-fast: false
     steps:
 
+      - name: Sync repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch }}
+          submodules: recursive
+
       - name: Install APT packages
-        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
+        uses: ./.github/actions/install_apt_packages
         with:
           packages: "build-essential cmake gcc-arm-none-eabi rsync"
           use-sudo: "true"
@@ -32,20 +38,14 @@ jobs:
           python-version: "3.12"
 
       - name: Install required python packages
-        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_python_packages@hotfix/fix-rsync-errors
+        uses: ./.github/actions/install_python_packages
         with:
           packages: "catkin_pkg lark-parser empy colcon-common-extensions"
           python-version: "3.12"
           use-sudo: "true"
 
-      - name: Sync repository
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.branch }}
-          submodules: recursive
-
       - name: Install TivaWare SDK
-        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_sdk@hotfix/fix-rsync-errors
+        uses: ./.github/actions/install_sdk
         with:
           sdk_version: "2.1.4.178"
           install_path: "${{ github.workspace }}/tivaware_c_series"
