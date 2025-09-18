@@ -22,7 +22,7 @@ jobs:
       - name: Install APT packages
         uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
         with:
-          packages: "build-essential cmake gcc-arm-none-eabi"
+          packages: "build-essential cmake gcc-arm-none-eabi rsync"
           use-sudo: "true"
           use-update: "true"
 
