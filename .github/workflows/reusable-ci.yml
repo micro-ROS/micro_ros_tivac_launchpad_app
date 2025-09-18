@@ -1,0 +1,57 @@
+name: Reusable CI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: "The OS to use for the workflow"
+        required: true
+        type: string
+      branch:
+        description: "The branch to use for the workflow"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    strategy:
+      fail-fast: false
+    steps:
+
+      - name: Install APT packages
+        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
+        with:
+          packages: "build-essential cmake gcc-arm-none-eabi rsync"
+          use-sudo: "true"
+          use-update: "true"
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install required python packages
+        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_python_packages@hotfix/fix-rsync-errors
+        with:
+          packages: "catkin_pkg lark-parser empy colcon-common-extensions"
+          python-version: "3.12"
+          use-sudo: "true"
+
+      - name: Sync repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch }}
+          submodules: recursive
+
+      - name: Install TivaWare SDK
+        uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_sdk@hotfix/fix-rsync-errors
+        with:
+          sdk_version: "2.1.4.178"
+          install_path: "${{ github.workspace }}/tivaware_c_series"
+          force_reinstall: "false"
+          use-sudo: "true"
+
+      - name: Build project
+        run: make -j$(nproc)
+        shell: bash
