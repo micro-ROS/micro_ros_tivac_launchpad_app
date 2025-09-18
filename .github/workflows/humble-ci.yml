@@ -1,0 +1,14 @@
+name: CI (Humble)
+
+on:
+  push:
+    branches: [ humble ]
+  pull_request:
+    branches: [ humble ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      os: ubuntu-22.04
+      branch: ${{ github.ref }}
