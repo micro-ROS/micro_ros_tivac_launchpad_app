@@ -1,0 +1,28 @@
+name: Nightly CI (all distros)
+
+on:
+  schedule:
+    - cron: '59 23 * * *'  # Runs every day at 23:59 UTC
+  workflow_dispatch:
+
+jobs:
+  humble-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: humble
+      os: ubuntu-22.04
+  jazzy-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: jazzy
+      os: ubuntu-24.04
+  kilted-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: kilted
+      os: ubuntu-24.04
+  rolling-ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      branch: rolling
+      os: ubuntu-24.04

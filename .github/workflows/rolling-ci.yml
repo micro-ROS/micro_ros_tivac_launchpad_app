@@ -1,0 +1,14 @@
+name: CI (Rolling)
+
+on:
+  push:
+    branches: [ rolling ]
+  pull_request:
+    branches: [ rolling ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      os: ubuntu-24.04
+      branch: ${{ github.ref }}
