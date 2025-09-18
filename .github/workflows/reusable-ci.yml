@@ -35,13 +35,13 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.10"
 
       - name: Install required python packages
         uses: ./.github/actions/install_python_packages
         with:
           packages: "catkin_pkg lark-parser empy colcon-common-extensions"
-          python-version: "3.12"
+          python-version: "3.10"
           use-sudo: "true"
 
       - name: Install TivaWare SDK
