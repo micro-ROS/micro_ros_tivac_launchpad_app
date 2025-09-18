@@ -139,8 +139,10 @@ popd > /dev/null
 
 apt -y install rsync
 for var in ${INCLUDE_ROS2_PACKAGES}; do
-    rsync -r $INSTALL_DIR/include/${var}/${var}/* $INSTALL_DIR/include/${var}/
-    rm -rf $INSTALL_DIR/include/${var}/${var}/
+    if [ -d "$INSTALL_DIR/include/${var}/${var}/" ]; then
+        rsync -r "$INSTALL_DIR/include/${var}/${var}/" "$INSTALL_DIR/include/${var}/"
+        rm -rf "$INSTALL_DIR/include/${var}/${var}/"
+    fi
 done
 
 # Print compiler info
