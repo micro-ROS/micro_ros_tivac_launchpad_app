@@ -11,4 +11,4 @@ jobs:
     uses: ./.github/workflows/reusable-ci.yml
     with:
       os: ubuntu-22.04
-      branch: humble
+      branch: ${{ github.ref }}
