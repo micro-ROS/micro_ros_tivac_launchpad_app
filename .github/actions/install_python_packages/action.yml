@@ -1,0 +1,40 @@
+name: install_python_packages
+description: 'Install specified Python packages in a virtual environment'
+
+inputs:
+  packages:
+    description: 'A space-separated list of Python packages to install.'
+    required: true
+  python-version:
+    description: 'The Python version to use (e.g., 3.12).'
+    required: true
+  venv-path:
+    description: 'The path where the virtual environment should be created.'
+    required: false
+    default: '.venv'
+  use-sudo:
+    description: 'Whether to use sudo for installation commands.'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Install required APT packages
+      uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
+      with:
+        packages: "python${{ inputs.python-version }}-venv"
+        use-sudo: ${{ inputs.use-sudo }}
+        use-update: "false"
+
+    - name: Setup environment
+      run: |
+        python${{ inputs.python-version }} -m venv ${{ inputs.venv-path }}
+        echo PATH=${GITHUB_WORKSPACE}/.venv/bin:$PATH >> $GITHUB_ENV
+      shell: bash
+
+    - name: Install Python packages
+      run: |
+        pip install ${{ inputs.packages }}
+      shell: bash

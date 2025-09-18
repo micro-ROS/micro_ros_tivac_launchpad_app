@@ -1,0 +1,14 @@
+name: CI (Kilted)
+
+on:
+  push:
+    branches: [ kilted ]
+  pull_request:
+    branches: [ kilted ]
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      os: ubuntu-24.04
+      branch: ${{ github.ref }}
