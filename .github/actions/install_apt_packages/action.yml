@@ -1,0 +1,33 @@
+name: install_apt_packages
+description: 'Install specified APT packages'
+
+inputs:
+  packages:
+    description: 'A space-separated list of APT packages to install.'
+    required: true
+  use-sudo:
+    description: 'Whether to use sudo for installation commands.'
+    required: false
+    default: 'true'
+  use-update:
+    description: 'Whether to run apt-get update before installing packages.'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install APT packages
+      run: |
+        if [ "${{ inputs.use-sudo }}" = "true" ]; then
+          SUDO="sudo"
+        else
+          SUDO=""
+        fi
+
+        if [ "${{ inputs.use-update }}" = "true" ]; then
+          $SUDO apt-get update
+        fi
+
+        $SUDO apt-get install -y ${{ inputs.packages }}
+      shell: bash
