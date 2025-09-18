@@ -22,7 +22,7 @@ runs:
   steps:
 
     - name: Install APT packages
-      uses: micro-ROS/micro_ros_tivac_launchpad_app/.github/actions/install_apt_packages@hotfix/fix-rsync-errors
+      uses: ./.github/actions/install_apt_packages
       with:
         packages: "curl p7zip"
         use-sudo: ${{ inputs.use-sudo }}
