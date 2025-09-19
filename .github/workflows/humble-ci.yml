@@ -12,3 +12,4 @@ jobs:
     with:
       os: ubuntu-22.04
       branch: ${{ github.ref }}
+      python-version: "3.10"
