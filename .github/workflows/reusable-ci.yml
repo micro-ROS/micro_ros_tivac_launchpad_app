@@ -11,6 +11,11 @@ on:
         description: "The branch to use for the workflow"
         required: true
         type: string
+      python-version:
+        description: "The Python version to use for the workflow"
+        required: false
+        type: string
+        default: "3.12"
 
 jobs:
   build:
@@ -35,13 +40,13 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
+          python-version: ${{ inputs.python-version }}
 
       - name: Install required python packages
         uses: ./.github/actions/install_python_packages
         with:
           packages: "catkin_pkg lark-parser empy==3.3.4 colcon-common-extensions"
-          python-version: "3.10"
+          python-version: ${{ inputs.python-version }}
           use-sudo: "true"
 
       - name: Install TivaWare SDK
