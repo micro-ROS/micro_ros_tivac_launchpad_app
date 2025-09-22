@@ -18,7 +18,11 @@ sudo apt install -y rsync pip git gcc-arm-none-eabi cmake
 This component needs `colcon` and other Python 3 packages in order to build micro-ROS packages:
 
 ```bash
+<<<<<<< HEAD
 pip3 install catkin_pkg lark-parser empy colcon-common-extensions
+=======
+pip3 install -r requirements.txt
+>>>>>>> 0ca6886 (Add requirements.txt file for Python dependencies (#40))
 ```
 
 ## Usage
