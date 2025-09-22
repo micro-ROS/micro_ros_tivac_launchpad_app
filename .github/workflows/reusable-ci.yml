@@ -45,11 +45,7 @@ jobs:
       - name: Install required python packages
         uses: ./.github/actions/install_python_packages
         with:
-<<<<<<< HEAD
-          packages: "catkin_pkg lark-parser empy colcon-common-extensions"
-=======
           requirements-file: "${{ github.workspace }}/requirements.txt"
->>>>>>> 0ca6886 (Add requirements.txt file for Python dependencies (#40))
           python-version: ${{ inputs.python-version }}
           use-sudo: "true"
 
