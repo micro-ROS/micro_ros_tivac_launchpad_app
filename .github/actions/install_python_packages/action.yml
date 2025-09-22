@@ -4,7 +4,12 @@ description: 'Install specified Python packages in a virtual environment'
 inputs:
   packages:
     description: 'A space-separated list of Python packages to install.'
-    required: true
+    required: false
+    default: ''
+  requirements-file:
+    description: 'Path to a requirements.txt file listing Python packages to install.'
+    required: false
+    default: ''
   python-version:
     description: 'The Python version to use (e.g., 3.12).'
     required: true
@@ -36,5 +41,12 @@ runs:
 
     - name: Install Python packages
       run: |
-        pip install ${{ inputs.packages }}
+        if [ -n "${{ inputs.requirements-file }}" ]; then
+          pip install -r ${{ inputs.requirements-file }}
+        fi
+
+        if [ -n "${{ inputs.packages }}" ]; then
+          pip install ${{ inputs.packages }}
+        fi
+
       shell: bash
